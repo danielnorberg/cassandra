@@ -82,31 +82,31 @@ public abstract class ModificationStatement extends CFStatement implements CQLSt
 
     public ResultMessage execute(ConsistencyLevel cl, QueryState queryState, List<ByteBuffer> variables) throws RequestExecutionException, RequestValidationException
     {
-        if (cl == null)
-            throw new InvalidRequestException("Invalid empty consistency level");
+        // if (cl == null)
+        //     throw new InvalidRequestException("Invalid empty consistency level");
 
-        validateConsistency(cl);
+        // validateConsistency(cl);
 
-        Collection<? extends IMutation> mutations = getMutations(variables, false, cl, queryState.getTimestamp());
+        // Collection<? extends IMutation> mutations = getMutations(variables, false, cl, queryState.getTimestamp());
 
-        // The type should have been set by now or we have a bug
-        assert type != null;
+        // // The type should have been set by now or we have a bug
+        // assert type != null;
 
-        switch (type)
-        {
-            case LOGGED:
-                if (mutations.size() > 1)
-                    StorageProxy.mutateAtomically((Collection<RowMutation>) mutations, cl);
-                else
-                    StorageProxy.mutate(mutations, cl);
-                break;
-            case UNLOGGED:
-            case COUNTER:
-                StorageProxy.mutate(mutations, cl);
-                break;
-            default:
-                throw new AssertionError();
-        }
+        // switch (type)
+        // {
+        //     case LOGGED:
+        //         if (mutations.size() > 1)
+        //             StorageProxy.mutateAtomically((Collection<RowMutation>) mutations, cl);
+        //         else
+        //             StorageProxy.mutate(mutations, cl);
+        //         break;
+        //     case UNLOGGED:
+        //     case COUNTER:
+        //         StorageProxy.mutate(mutations, cl);
+        //         break;
+        //     default:
+        //         throw new AssertionError();
+        // }
 
         return null;
     }
