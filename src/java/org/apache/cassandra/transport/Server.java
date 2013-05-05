@@ -209,6 +209,8 @@ public class Server implements CassandraDaemon.Server
 
             //pipeline.addLast("debug", new LoggingHandler());
 
+            pipeline.addLast("writeBatcher", new AutoFlushingWriteBatcher());
+
             pipeline.addLast("frameDecoder", new Frame.Decoder(server.connectionTracker, ServerConnection.FACTORY));
             pipeline.addLast("frameEncoder", frameEncoder);
 

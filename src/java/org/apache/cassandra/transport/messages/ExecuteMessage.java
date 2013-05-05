@@ -34,6 +34,7 @@ import org.apache.cassandra.tracing.Tracing;
 import org.apache.cassandra.transport.*;
 import org.apache.cassandra.utils.MD5Digest;
 import org.apache.cassandra.utils.UUIDGen;
+import org.jboss.netty.buffer.ChannelBuffers;
 
 public class ExecuteMessage extends Message.Request
 {
@@ -52,24 +53,47 @@ public class ExecuteMessage extends Message.Request
             return new ExecuteMessage(id, values, consistency);
         }
 
-        public ChannelBuffer encode(ExecuteMessage msg)
-        {
+        public ChannelBuffer encode(ExecuteMessage msg) {
+            final ChannelBuffer out = ChannelBuffers.buffer(size(msg));
+
             // We have:
             //   - statementId
             //   - Number of values
             //   - The values
             //   - options
-            int vs = msg.values.size();
-            CBUtil.BufferBuilder builder = new CBUtil.BufferBuilder(3, 0, vs);
-            builder.add(CBUtil.bytesToCB(msg.statementId.bytes));
-            builder.add(CBUtil.shortToCB(vs));
+
+            // statementId
+            out.writeShort(msg.statementId.bytes.length);
+            out.writeBytes(msg.statementId.bytes);
 
             // Values
-            for (ByteBuffer value : msg.values)
-                builder.addValue(value);
+            out.writeShort(msg.values.size());
+            for (ByteBuffer value : msg.values) {
+                out.writeInt(value.remaining());
+                out.writeBytes(value.slice());
+            }
 
-            builder.add(CBUtil.consistencyLevelToCB(msg.consistency));
-            return builder.build();
+            // options
+            out.writeShort(msg.consistency.code);
+
+            return out;
+        }
+
+        private int size(final ExecuteMessage msg)
+        {
+            // statementId
+            final int statementSize = 2 + msg.statementId.bytes.length;
+
+            // Values
+            int valuesSize = 2;
+            for (ByteBuffer value : msg.values) {
+                valuesSize += 4 + value.remaining();
+            }
+
+            // options
+            final int optionsSize = 2;
+
+            return statementSize + valuesSize + optionsSize;
         }
     };
 
